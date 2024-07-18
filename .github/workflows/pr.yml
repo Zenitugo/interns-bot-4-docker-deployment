@@ -1,0 +1,37 @@
+name: Pull Request Deployment
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+jobs:
+  deploy:
+    if: ${{ github.event.action == 'opened' || github.event.action == 'reopened' || github.event.action == 'synchronize' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build Docker image
+        run: |
+          docker-compose build
+
+      - name: Deploy with Docker Compose
+        run: |
+          docker-compose -p pr-${{ github.event.number }} up -d
+
+  cleanup:
+    if: ${{ github.event.action == 'closed' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Clean up Docker Compose
+        run: |
+          docker-compose -p pr-${{ github.event.number }} down
