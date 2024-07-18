@@ -1,6 +1,6 @@
-# github-bot
+# my-first-app
 
-> A GitHub App built with [Probot](https://github.com/probot/probot) that A github bot that will update on the status of the deployment of pull request in docker containers
+> A GitHub App built with [Probot](https://github.com/probot/probot) that hng bot
 
 ## Setup
 
@@ -16,18 +16,18 @@ npm start
 
 ```sh
 # 1. Build container
-docker build -t github-bot .
+docker build -t my-first-app .
 
 # 2. Start container
-docker run -e APP_ID=<app-id> -e PRIVATE_KEY=<pem-value> github-bot
+docker run -e APP_ID=<app-id> -e PRIVATE_KEY=<pem-value> my-first-app
 ```
 
 ## Contributing
 
-If you have suggestions for how github-bot could be improved, or want to report a bug, open an issue! We'd love all and any contributions.
+If you have suggestions for how my-first-app could be improved, or want to report a bug, open an issue! We'd love all and any contributions.
 
 For more, check out the [Contributing Guide](CONTRIBUTING.md).
 
 ## License
 
-[ISC](LICENSE) © 2024 zenitugo
+[ISC](LICENSE) © 2024 Afeez Adeboye

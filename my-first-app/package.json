@@ -1,9 +1,9 @@
 {
-  "name": "github-bot",
+  "name": "my-first-app",
   "version": "1.0.0",
   "private": true,
-  "description": "A github bot that will update on the status of the deployment of pull request in docker containers",
-  "author": "zenitugo",
+  "description": "hng bot",
+  "author": "Afeez Adeboye",
   "license": "ISC",
   "homepage": "https://github.com//",
   "keywords": [
@@ -16,7 +16,8 @@
     "test": "node --test"
   },
   "dependencies": {
-    "probot": "^13.0.1"
+    "express": "^4.19.2",
+    "probot": "^13.3.6"
   },
   "devDependencies": {
     "nock": "^14.0.0-beta.5",
