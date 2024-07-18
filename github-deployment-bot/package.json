@@ -1,0 +1,20 @@
+{
+  "name": "interns-bot-4-docker-deployment",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start": "probot run ./app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@octokit/rest": "^21.0.1",
+    "@octokit/webhooks": "^13.3.0",
+    "dockerode": "^4.0.2",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "probot": "^13.3.6"
+  }
+}
