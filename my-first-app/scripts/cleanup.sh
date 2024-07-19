@@ -1,25 +1,25 @@
 #!/bin/bash
 
-# Exit on any error
 set -e
 
 # Variables
-APP_DIR=$1
-PR_NUMBER=$2
+BRANCH_NAME=$1 
+PR_NUMBER=$2  
 REPO_NAME=$3
-DOCKER_COMPOSE_PROJECT_NAME="${REPO_NAME}-${PR_NUMBER}"
+APP_DIR="${HOME}/my-first-app-${PR_NUMBER}"
+CONTAINER_NAME="${REPO_NAME}-${PR_NUMBER}"
 LOG_FILE="cleanup.log"
+
+# Ensure required arguments are provided
+if [ -z "$BRANCH_NAME" ] || [ -z "$PR_NUMBER" ] || [ -z "$REPO_NAME" ]; then
+  echo "Usage: $0 <branch_name> <pr_number> <repo_name>"
+  exit 1
+fi
 
 # Function to log status
 log_status() {
   echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> $LOG_FILE
 }
-
-# Ensure required arguments are provided
-if [ -z "$APP_DIR" ] || [ -z "$PR_NUMBER" ] || [ -z "$REPO_NAME" ]; then
-  echo "Usage: $0 <app_dir> <pr_number> <repo_name>"
-  exit 1
-fi
 
 log_status "Starting cleanup for PR #${PR_NUMBER}"
 
@@ -31,19 +31,24 @@ else
   exit 1
 fi
 
-# Checkout the deployment branch
-if git checkout "pr-$PR_NUMBER"; then
-  log_status "Checked out branch pr-$PR_NUMBER"
+# Stop and remove the Docker container if it exists
+if docker stop "$CONTAINER_NAME" 2>/dev/null; then
+  log_status "Stopped Docker container $CONTAINER_NAME"
 else
-  log_status "Error: Failed to checkout branch pr-$PR_NUMBER"
-  exit 1
+  log_status "Docker container $CONTAINER_NAME not running"
 fi
 
-# Stop and remove the Docker Compose services
-if docker-compose -p "$DOCKER_COMPOSE_PROJECT_NAME" down; then
-  log_status "Stopped and removed Docker Compose services for project $DOCKER_COMPOSE_PROJECT_NAME"
+if docker rm "$CONTAINER_NAME" 2>/dev/null; then
+  log_status "Removed Docker container $CONTAINER_NAME"
 else
-  log_status "Error: Failed to stop and remove Docker Compose services for project $DOCKER_COMPOSE_PROJECT_NAME"
+  log_status "Docker container $CONTAINER_NAME not found"
+fi
+
+# Remove all contents of the application directory
+if rm -rf "$APP_DIR"/*; then
+  log_status "Removed all contents of $APP_DIR"
+else
+  log_status "Error: Failed to remove contents of $APP_DIR"
   exit 1
 fi
 
