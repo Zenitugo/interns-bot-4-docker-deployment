@@ -2,9 +2,9 @@
   "name": "interns-bot-4-docker-deployment",
   "version": "1.0.0",
   "description": "",
-  "main": "app.js",
+  "main": "index.js",
   "scripts": {
-    "start": "probot run ./app.js"
+    "start": "probot run ./index.js"
   },
   "keywords": [],
   "author": "",
@@ -15,6 +15,7 @@
     "dockerode": "^4.0.2",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "probot": "^13.3.6"
+    "probot": "^13.3.6",
+    "smee-client": "^2.0.1"
   }
 }
