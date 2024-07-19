@@ -2,23 +2,19 @@
 
 set -e
 
-
-
-APP_DIR="/path/to/your/app"  
 BRANCH_NAME=$1 
 PR_NUMBER=$2  
 REPO_NAME=$3
 REPO_URL=$4
-DOCKER_COMPOSE_PROJECT_NAME="${REPO_NAME}-${PR_NUMBER}"  
+APP_DIR="${HOME}/my-first-app-${PR_NUMBER}"
+DOCKER_COMPOSE_PROJECT_NAME="${REPO_NAME}-${PR_NUMBER}"
+
 #ssh to be stored here
-docker exec -it stage3 /bin/bash
 # Navigate to the application directory
 
-# Check if the repository directory exists
-if [! -d "$APP_DIR" ]; then
-  echo "Repository directory $REPO_DIR not found. Cloning repository..."
-  git clone $REPO_URL $REPO_DIR
-fi
+mkdir -p $APP_DIR
+rm -rf $APP_DIR/*
+git clone $REPO_URL $APP_DIR
 cd $APP_DIR
 # Pull the latest code from the specified branch
 echo "Pulling latest code from branch ${BRANCH_NAME}..."
