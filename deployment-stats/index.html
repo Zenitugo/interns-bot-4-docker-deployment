@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deployment Status</title>
+</head>
+<body>
+  <h1>Deployment Status</h1>
+  <form id="statusForm">
+    <label for="prNumber">Pull Request Number:</label>
+    <input type="text" id="prNumber" name="prNumber">
+    <button type="submit">Get Status</button>
+  </form>
+  <div id="statusResult"></div>
+
+  <script>
+    document.getElementById('statusForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const prNumber = document.getElementById('prNumber').value;
+      fetch(`https://bot-deployment-service.onrender.com/deployment-stats/${prNumber}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.error) {
+            document.getElementById('statusResult').innerText = data.error;
+          } else {
+            document.getElementById('statusResult').innerText = `PR #${data.prNumber}: ${data.status}`;
+          }
+        });
+    });
+  </script>
+</body>
+</html>
