@@ -64,7 +64,7 @@ export default (app) => {
       );
       // Make a comment
       const issueComment = context.issue({
-        body: "Thanks for opening this issue!",
+        body: "Thanks for banking with with us",
       });
       await context.octokit.issues.createComment(issueComment);
     }

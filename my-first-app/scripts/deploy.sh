@@ -11,6 +11,7 @@ REPO_NAME=$3
 REPO_URL=$4
 DOCKER_COMPOSE_PROJECT_NAME="${REPO_NAME}-${PR_NUMBER}"  
 #ssh to be stored here
+
 docker exec -it stage3 /bin/bash
 # Navigate to the application directory
 
