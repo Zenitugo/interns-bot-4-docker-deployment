@@ -17,7 +17,6 @@ export default (app) => {
     const repo = context.payload.repository.name;
     const owner = context.payload.repository.owner.login;
     const deploymentUrl = `http://your-deployment-server/pr-${prNumber}`;
-    
 
     // Execute the deployment script
     const __dirname = path.dirname(new URL(import.meta.url).pathname);
@@ -79,14 +78,46 @@ export default (app) => {
         auto_inactive: true,
       })
     );
-     // Make a comment
-     const issueComment = context.issue({
-      body: "Thanks for opening this issue!",
-    });
-    await context.octokit.issues.createComment(issueComment);
-  }
-);
+  });
 
+  // Handle pull request closed event
+  app.on("pull_request.closed", async (context) => {
+    const prNumber = context.payload.pull_request.number;
+    const repo = context.payload.repository.name;
+    const owner = context.payload.repository.owner.login;
+
+    // Execute the cleanup script
+    const __dirname = path.dirname(new URL(import.meta.url).pathname);
+    const cleanupScriptPath = path.resolve(__dirname, "./scripts/cleanup.sh");
+    exec(
+      `bash ${cleanupScriptPath} ${prNumber} ${repo}`,
+      (error, stdout, stderr) => {
+        if (error) {
+          console.error(`Error executing cleanup script: ${error}`);
+          // Comment on the pull request with the error
+          context.octokit.issues.createComment({
+            owner,
+            repo,
+            issue_number: prNumber,
+            body: `Cleanup failed: ${error.message}`,
+          });
+          return;
+        }
+        console.log(`Cleanup script output: ${stdout}`);
+        if (stderr) {
+          console.error(`Cleanup script stderr: ${stderr}`);
+        }
+
+        // Comment on the pull request about the cleanup
+        context.octokit.issues.createComment({
+          owner,
+          repo,
+          issue_number: prNumber,
+          body: "Deployment has been cleaned up.",
+        });
+      }
+    );
+  });
 
   // For more information on building apps:
   // https://probot.github.io/docs/
