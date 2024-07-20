@@ -12,7 +12,8 @@ app.set('view engine', 'ejs');
 app.get('/', async (req, res) => {
     const { url } = req.query;
     // read from a file line by line
-    const filePath = '/home/dominic-source/Projects/interns-bot-4-docker-deployment/my-first-app/deployment.log'
+    // const filePath = '/home/dominic-source/Projects/interns-bot-4-docker-deployment/my-first-app/deployment.log'
+    const filePath = 'cleanup.log'
     const logs = [];
 
     const readInterface = readline.createInterface({

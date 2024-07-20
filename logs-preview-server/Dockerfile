@@ -9,6 +9,7 @@ COPY package*.json ./
 
 # Install any dependencies
 RUN npm install
+RUN npm install pm2 -g
 
 # Copy the rest of the application's source code from the local directory to the working directory inside the container
 COPY . .
@@ -17,4 +18,5 @@ COPY . .
 EXPOSE 7000
 
 # Run the application when the container launches
-CMD ["npm", "start"]
+# CMD ["npm", "start"]
+CMD ["pm2-runtime", "server.js"]
