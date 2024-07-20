@@ -100,7 +100,7 @@ find_available_port() {
   while netstat -tuln | grep -q ":$PORT "; do
     ((PORT++))
   done
-  echo $PORT
+  export PORT=$PORT
 }
 find_available_port
 
