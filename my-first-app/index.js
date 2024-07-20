@@ -38,8 +38,8 @@ export default (app) => {
               <tr>
                 <td>${branchName}</td>
                 <td>${status}</td>
-                <td><a href="http://localhost:7000?url=http://46.101.82.134:8000">View Logs</a></td>
-                <td><a href="http://46.101.82.134:8000">Preview page</a></td>
+                <td><a href="http://${serverIp}:7000?url=http://${serverIp}:8000">View Logs</a></td>
+                <td><a href="http://${serverIp}:8000">Preview page</a></td>
               </tr>
             </table>`
           : `<table>
@@ -52,7 +52,7 @@ export default (app) => {
           <tr>
             <td>${branchName}</td>
             <td>${status}</td>
-            <td><a href="http://localhost:7000?url=http://46.101.82.134:8000">View Logs</a></td>
+            <td><a href="http://${serverIp}:7000?url=http://${serverIp}:8000">View Logs</a></td>
             <td></td>
           </tr>
         </table>`;
@@ -113,8 +113,8 @@ export default (app) => {
           <tr>
             <td>${branchName}</td>
             <td>${status}</td>
-            <td><a href="http://localhost:7000?url=http://46.101.82.134:8000">View Logs</a></td>
-            <td><a href="http://localhost:7000?url=http://46.101.82.134:8000">View Logs</a></td>
+            <td><a href="http://${serverIp}:7000?url=http://${serverIp}:8000">View Logs</a></td>
+            <td><a href="http://${serverIp}:7000?url=http://${serverIp}:8000">View Logs</a></td>
           </tr>
           </table>`
         : `<table>
@@ -127,7 +127,7 @@ export default (app) => {
         <tr>
           <td>${branchName}</td>
           <td>${status}</td>
-          <td><a href="http://localhost:7000?url=http://46.101.82.134:8000">View Logs</a></td>
+          <td><a href="http://${serverIp}:7000?url=http://${serverIp}:8000">View Logs</a></td>
           <td></td>
         </tr>
       </table>`;
