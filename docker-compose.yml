@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  previewapp:
+    build:
+      context: ./logs-preview-server
+      dockerfile: Dockerfile
+    ports:
+      - "7000:7000" # Map host port 80 to container port 5173
+    environment:
+      FILE_PATH_LOG: ${FILE_PATH_LOG}
+
+  bot:
+    build:
+      context: ./my-first-app
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000" # Map host port 8000 to container port 8000
+    environment:
+      APP_ID: 9545482
+      WEBHOOK_SECRET: development
+      LOG_LEVEL: debug
+      WEBHOOK_PROXY_URL: https://smee.io/PMcjmfua4820wOah
+      SERVER_USER: ${SERVER_USER}
+      SERVER_IP: ${SERVER_IP}
+      SERVER_PASSWORD: ${SERVER_PASSWORD}
+
+    env_file:
+      - .env
+
+volumes:
+  db-data:
