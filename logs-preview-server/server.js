@@ -3,7 +3,7 @@ const readline = require('readline');
 const fs = require('fs');
 const path = require('path');
 const app = express();
-const PORT = 3000;
+const PORT = 7000;
 
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -12,7 +12,7 @@ app.set('view engine', 'ejs');
 app.get('/', async (req, res) => {
     const { url } = req.query;
     // read from a file line by line
-    const filePath = path.join(__dirname, 'cleanup.log');
+    const filePath = '/home/dominic-source/Projects/interns-bot-4-docker-deployment/my-first-app/deployment.log'
     const logs = [];
 
     const readInterface = readline.createInterface({
