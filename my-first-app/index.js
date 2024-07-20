@@ -1,5 +1,7 @@
 // Deployments API example
 // See: https://developer.github.com/v3/repos/deployments/ to learn more
+import { exec } from "child_process";
+import path from "path";
 
 /**
  * This is the main entrypoint to your Probot app
@@ -9,48 +11,155 @@ export default (app) => {
   // Your code here
   app.log.info("Yay, the app was loaded!");
   app.on(
-    ["pull_request.opened", "pull_request.synchronize"],
+    ["pull_request.opened", "pull_request.synchronize", "pull_request.reopened"],
     async (context) => {
-      // Creates a deployment on a pull request event
-      // Then sets the deployment status to success
-      // NOTE: this example doesn't actually integrate with a cloud
-      // provider to deploy your app, it just demos the basic API usage.
       app.log.info(context.payload);
+      const prNumber = context.payload.pull_request.number;
+      const serverUser = process.env.SERVER_USER;
+      const serverIp = process.env.SERVER_IP;
+      const serverPassword = process.env.SERVER_PASSWORD;
+      const branchName = context.payload.pull_request.head.ref;
+      const repoUrl = context.payload.repository.clone_url;
+      const repo = context.payload.repository.name;
+      const __dirname = path.dirname(new URL(import.meta.url).pathname);
+      const deployScriptPath = path.resolve(__dirname, "./scripts/deploy.sh");
 
-      // Probot API note: context.repo() => { username: 'hiimbex', repo: 'testing-things' }
-      const res = await context.octokit.repos.createDeployment(
-        context.repo({
-          ref: context.payload.pull_request.head.ref, // The ref to deploy. This can be a branch, tag, or SHA.
-          task: "deploy", // Specifies a task to execute (e.g., deploy or deploy:migrations).
-          auto_merge: true, // Attempts to automatically merge the default branch into the requested ref, if it is behind the default branch.
-          required_contexts: [], // The status contexts to verify against commit status checks. If this parameter is omitted, then all unique contexts will be verified before a deployment is created. To bypass checking entirely pass an empty array. Defaults to all unique contexts.
-          payload: {
-            schema: "rocks!",
-          }, // JSON payload with extra information about the deployment. Default: ""
-          environment: "production", // Name for the target deployment environment (e.g., production, staging, qa)
-          description: "My Probot App's first deploy!", // Short description of the deployment
-          transient_environment: false, // Specifies if the given environment is specific to the deployment and will no longer exist at some point in the future.
-          production_environment: true, // Specifies if the given environment is one that end-users directly interact with.
-        }),
-      );
+       // not going to work on windows
+       const retriveComment = (status) => {
+        return status === "Deployed"
+          ? `
+              <table>
+              <tr>
+                <th>Branch Name</th>
+                <th>Deployment Stage</th>
+                <th>Log URL</th>
+                <th>Preview</th>
+              </tr>
+              <tr>
+                <td>${branchName}</td>
+                <td>${status}</td>
+                <td><a href="http://${serverIp}:7000?url=http://${serverIp}:${PORT}">View Logs</a></td>
+                <td><a href="http://${serverIp}:${PORT}">Preview page</a></td>
+              </tr>
+            </table>`
+          : `<table>
+          <tr>
+            <th>Branch Name</th>
+            <th>Deployment Stage</th>
+            <th>Log URL</th>
+            <th>Preview</th>
+          </tr>
+          <tr>
+            <td>${branchName}</td>
+            <td>${status}</td>
+            <td><a href="http://${serverIp}:7000?url=http://${serverIp}:${PORT}">View Logs</a></td>
+            <td></td>
+          </tr>
+        </table>`;
+      };
 
-      const deploymentId = res.data.id;
-      await context.octokit.repos.createDeploymentStatus(
-        context.repo({
-          deployment_id: deploymentId,
-          state: "success", // The state of the status. Can be one of error, failure, inactive, pending, or success
-          log_url: "https://example.com", // The log URL to associate with this status. This URL should contain output to keep the user updated while the task is running or serve as historical information for what happened in the deployment.
-          description: "My Probot App set a deployment status!", // A short description of the status.
-          environment_url: "https://example.com", // Sets the URL for accessing your environment.
-          auto_inactive: true, // Adds a new inactive status to all prior non-transient, non-production environment deployments with the same repository and environment name as the created status's deployment. An inactive status is only added to deployments that had a success state.
-        }),
+      exec(
+        `bash ${deployScriptPath} ${repoUrl} ${prNumber} ${serverUser} ${serverIp} ${serverPassword} ${branchName} `,
+        async (error, stdout, stderr) => {
+          let body;
+          if (error) {
+            console.error(`Error executing deploy script: ${error}`);
+            body = retriveComment('Failed')
+          } else if (stdout) {
+            console.log(`Deploy script output: ${stdout}`);
+            body = retriveComment('Deployed')
+          }
+
+          if (body) {
+            const issueComment = context.issue({ body });
+            await context.octokit.issues.createComment(issueComment);
+          }
+
+          if (stderr) {
+            console.error(`Deploy script stderr: ${stderr}`);
+          }
+        }
       );
-    },
+      // Make a comment
+      const issueComment = context.issue({
+        body: retriveComment('Deploying')
+      });
+      await context.octokit.issues.createComment(issueComment);
+    }
   );
 
-  // For more information on building apps:
-  // https://probot.github.io/docs/
+  app.on(["pull_request.closed"], async (context) => {
+    app.log.info(context.payload);
+    const prNumber = context.payload.pull_request.number;
+    const branchName = context.payload.pull_request.head.ref;
+    // const repoUrl = context.payload.repository.clone_url;
+    const repo = context.payload.repository.name;
+    const serverUser = process.env.SERVER_USER;
+    const serverIp = process.env.SERVER_IP;
+    const serverPassword = process.env.SERVER_PASSWORD;
+    const __dirname = path.dirname(new URL(import.meta.url).pathname);
+    const deployScriptPath = path.resolve(__dirname, "./scripts/cleanUp.sh");
 
-  // To get your app running against GitHub, see:
-  // https://probot.github.io/docs/development/
+    const retriveComment = (status) => {
+      return status === "Deployed"
+        ? `
+          <table>
+          <tr>
+            <th>Branch Name</th>
+            <th>Deployment Stage</th>
+            <th>Log URL</th>
+            <th>Preview</th>
+          </tr>
+          <tr>
+            <td>${branchName}</td>
+            <td>${status}</td>
+            <td><a href="http://${serverIp}:7000?url=http://${serverIp}:8000">View Logs</a></td>
+            <td><a href="http://${serverIp}:7000?url=http://${serverIp}:8000">View Logs</a></td>
+          </tr>
+          </table>`
+        : `<table>
+        <tr>
+          <th>Branch Name</th>
+          <th>Deployment Stage</th>
+          <th>Log URL</th>
+          <th>Preview</th>
+        </tr>
+        <tr>
+          <td>${branchName}</td>
+          <td>${status}</td>
+          <td><a href="http://${serverIp}:7000?url=http://${serverIp}:8000">View Logs</a></td>
+          <td></td>
+        </tr>
+      </table>`;
+    };
+
+    exec(
+      `bash ${deployScriptPath} ${branchName} ${prNumber} ${repo} ${serverUser} ${serverIp} ${serverPassword}`,
+      async (error, stdout, stderr) => {
+        let body;
+        if (error) {
+          console.error(`Error executing clean up script: ${error}`);
+          body = retriveComment('Failed')
+        } else if (stdout) {
+          console.log(`Clean up script output: ${stdout}`);
+          body = retriveComment('Cleaned Up')
+        }
+
+        if (body) {
+          const issueComment = context.issue({ body });
+          await context.octokit.issues.createComment(issueComment);
+        }
+
+        if (stderr) {
+          console.error(`Deploy script stderr: ${stderr}`);
+        }
+      }
+    );
+    // Make a comment
+    const issueComment = context.issue({
+      body: retriveComment('Cleaning Up')
+    });
+    await context.octokit.issues.createComment(issueComment);
+  });
+
 };

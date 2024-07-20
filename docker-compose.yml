@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  node_app:
+    build:
+      context: ./my-first-app
+      dockerfile: Dockerfile
+    container_name: app
+    environment:
+      - APP_ID=${APP_ID}
+      - PRIVATE_KEY=${PRIVATE_KEY}
+      - WEBHOOK_SECRET=${WEBHOOK_SECRET}
+    ports:
+      - "8000:8000"
+
+  log_app:
+    build:
+      context: ./logs-preview-server
+      dockerfile: Dockerfile
+    container_name: logs_preview
+    ports:
+      - "7000:7000"
