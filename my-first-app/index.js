@@ -49,7 +49,12 @@ export default (app) => {
       );
       // Make a comment
       const issueComment = context.issue({
-        body: "Deploying the application please wait",
+        body: `
+        | Branch Name   | Deployment Stage | Log URL               |
+        |---------------|------------------|-----------------------|
+        | ${branchName} | Deploying        | [View Logs](http://example.com/logs/main) |
+       
+        `,
       });
       await context.octokit.issues.createComment(issueComment);
     }
