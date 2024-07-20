@@ -10,6 +10,13 @@ services:
       - APP_ID=${APP_ID}
       - PRIVATE_KEY=${PRIVATE_KEY}
       - WEBHOOK_SECRET=${WEBHOOK_SECRET}
+      - LOG_LEVEL=debug
+      - WEBHOOK_PROXY_URL=https://smee.io/PMcjmfua4820wOah
+      - SERVER_USER=${SERVER_USER}
+      - SERVER_IP=${SERVER_IP}
+      - SERVER_PASSWORD=${SERVER_PASSWORD}
+    env_file:
+      - .env
     ports:
       - "8000:8000"
 
