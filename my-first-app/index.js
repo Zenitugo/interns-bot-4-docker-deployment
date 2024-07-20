@@ -11,7 +11,11 @@ export default (app) => {
   // Your code here
   app.log.info("Yay, the app was loaded!");
   app.on(
-    ["pull_request.opened", "pull_request.synchronize"],
+    [
+      "pull_request.opened",
+      "pull_request.synchronize",
+      "pull_request.reopened",
+    ],
     async (context) => {
       app.log.info(context.payload);
       const prNumber = context.payload.pull_request.number;
@@ -25,16 +29,52 @@ export default (app) => {
       const deployScriptPath = path.resolve(__dirname, "./scripts/deploy.sh");
 
       // not going to work on windows
+      const retriveComment = (status) => {
+        return status === "Deployed"
+          ? `
+  <table>
+  <tr>
+    <th>Branch Name</th>
+    <th>Deployment Stage</th>
+    <th>Log URL</th>
+    <th>Preview</th>
+  </tr>
+  <tr>
+    <td>${branchName}</td>
+    <td>${status}</td>
+    <td><a href="http://localhost:7000?url=http://46.101.82.134:8000">View Logs</a></td>
+    <td><a href="http://localhost:7000?url=http://46.101.82.134:8000">View Logs</a></td>
+  </tr>
+</table>`
+          : `<table>
+          <tr>
+            <th>Branch Name</th>
+            <th>Deployment Stage</th>
+            <th>Log URL</th>
+            <th>Preview</th>
+          </tr>
+          <tr>
+            <td>${branchName}</td>
+            <td>${status}</td>
+            <td><a href="http://localhost:7000?url=http://46.101.82.134:8000">View Logs</a></td>
+            <td></td>
+          </tr>
+        </table>`;
+      };
       exec(
         `bash ${deployScriptPath} ${repoUrl} ${prNumber} ${serverUser} ${serverIp} ${serverPassword} ${branchName} `,
         async (error, stdout, stderr) => {
           let body;
           if (error) {
             console.error(`Error executing deploy script: ${error}`);
-            body = `### 🚨 Deployment Failed\n\n**Branch:** ${branchName}\n**PR:** #${prNumber}\n\nPlease check the logs for more details.`;
+            body = `### 🚨 Deployment Failed\n\n**Branch:** ${branchName}\n**PR:** #${prNumber}\n\nPlease check the logs for more details.\n\n
+            ${retriveComment("Failed")}
+            `;
           } else if (stdout) {
             console.log(`Deploy script output: ${stdout}`);
-            body = `### 🎉 Deployment Succeeded\n**Branch:** ${branchName}\n**PR:** #${prNumber}\n\nThe application has been successfully deployed for testing.`;
+            body = `### 🎉 Deployment Succeeded\n**Branch:** ${branchName}\n**PR:** #${prNumber}\n\nThe application has been successfully deployed for testing.\n\n
+            ${retriveComment("Deployed")}
+            `;
           }
 
           if (body) {
@@ -50,10 +90,7 @@ export default (app) => {
       // Make a comment
       const issueComment = context.issue({
         body: `
-        | Branch Name   | Deployment Stage | Log URL               |
-        |---------------|------------------|-----------------------|
-        | ${branchName} | Deploying        | [View Logs](http://example.com/logs/main) |
-       
+        ${retriveComment("Deploying")}
         `,
       });
       await context.octokit.issues.createComment(issueComment);
