@@ -2,7 +2,7 @@
 // See: https://developer.github.com/v3/repos/deployments/ to learn more
 import { exec } from "child_process";
 import path from "path";
- 
+
 /**
  * This is the main entrypoint to your Probot app
  * @param {import('probot').Probot} app
@@ -15,14 +15,18 @@ export default (app) => {
     async (context) => {
       app.log.info(context.payload);
       const prNumber = context.payload.pull_request.number;
+      const serverUser = process.env.SERVER_USER;
+      const serverIp = process.env.SERVER_IP;
+      const serverPassword = process.env.SERVER_PASSWORD;
       const branchName = context.payload.pull_request.head.ref;
       const repoUrl = context.payload.repository.clone_url;
       const repo = context.payload.repository.name;
       const __dirname = path.dirname(new URL(import.meta.url).pathname);
       const deployScriptPath = path.resolve(__dirname, "./scripts/deploy.sh");
+
       // not going to work on windows
       exec(
-        `bash ${deployScriptPath} ${branchName} ${prNumber} ${repo} ${repoUrl}`,
+        `bash ${deployScriptPath} ${repoUrl} ${prNumber} ${serverUser} ${serverIp} ${serverPassword} ${branchName} `,
         async (error, stdout, stderr) => {
           let body;
           if (error) {
@@ -45,52 +49,52 @@ export default (app) => {
       );
       // Make a comment
       const issueComment = context.issue({
-        body: "Thanks for opening this issue!",
+        body: "Deploying the application please wait",
       });
       await context.octokit.issues.createComment(issueComment);
     }
   );
 
-  app.on(
-    ["pull_request.closed"],
-    async (context) => {
-      app.log.info(context.payload);
-      const prNumber = context.payload.pull_request.number;
-      const branchName = context.payload.pull_request.head.ref;
-      const repoUrl = context.payload.repository.clone_url;
-      const repo = context.payload.repository.name;
-      const __dirname = path.dirname(new URL(import.meta.url).pathname);
-      const deployScriptPath = path.resolve(__dirname, "./scripts/cleanUp.sh");
-      // not going to work on windows
-      exec(
-        `bash ${deployScriptPath} ${branchName} ${prNumber} ${repo} ${repoUrl}`,
-        async (error, stdout, stderr) => {
-          let body;
-          if (error) {
-            console.error(`Error executing clean up script: ${error}`);
-            body = `### 🚨 Clean up Failed\n**Error:** ${error.message}\n**Branch:** ${branchName}\n**PR:** #${prNumber}\n\nPlease check the logs for more details.`;
-          } else if (stdout) {
-            console.log(`Clean up script output: ${stdout}`);
-            body = `### 🎉 Clean up Succeeded\n**Branch:** ${branchName}\n**PR:** #${prNumber}`;
-          }
-
-          if (body) {
-            const issueComment = context.issue({ body });
-            await context.octokit.issues.createComment(issueComment);
-          }
-
-          if (stderr) {
-            console.error(`Deploy script stderr: ${stderr}`);
-          }
+  app.on(["pull_request.closed"], async (context) => {
+    app.log.info(context.payload);
+    const prNumber = context.payload.pull_request.number;
+    const branchName = context.payload.pull_request.head.ref;
+    const repoUrl = context.payload.repository.clone_url;
+    const repo = context.payload.repository.name;
+    const serverUser = process.env.SERVER_USER;
+    const serverIp = process.env.SERVER_IP;
+    const serverPassword = process.env.SERVER_PASSWORD;
+    const __dirname = path.dirname(new URL(import.meta.url).pathname);
+    const deployScriptPath = path.resolve(__dirname, "./scripts/cleanUp.sh");
+    // not going to work on windows
+    exec(
+      `bash ${deployScriptPath} ${branchName} ${prNumber} ${repo} ${serverUser} ${serverIp} ${serverPassword}`,
+      async (error, stdout, stderr) => {
+        let body;
+        if (error) {
+          console.error(`Error executing clean up script: ${error}`);
+          body = `### 🚨 Clean up Failed\n**Error:** ${error.message}\n**Branch:** ${branchName}\n**PR:** #${prNumber}\n\nPlease check the logs for more details.`;
+        } else if (stdout) {
+          console.log(`Clean up script output: ${stdout}`);
+          body = `### 🎉 Clean up Succeeded\n**Branch:** ${branchName}\n**PR:** #${prNumber}`;
         }
-      );
-      // Make a comment
-      const issueComment = context.issue({
-        body: "Thanks for banking with with us",
-      });
-      await context.octokit.issues.createComment(issueComment);
-    }
-  );
+
+        if (body) {
+          const issueComment = context.issue({ body });
+          await context.octokit.issues.createComment(issueComment);
+        }
+
+        if (stderr) {
+          console.error(`Deploy script stderr: ${stderr}`);
+        }
+      }
+    );
+    // Make a comment
+    const issueComment = context.issue({
+      body: "Cleaning the server, please wait",
+    });
+    await context.octokit.issues.createComment(issueComment);
+  });
 
   // For more information on building apps:
   // https://probot.github.io/docs/
