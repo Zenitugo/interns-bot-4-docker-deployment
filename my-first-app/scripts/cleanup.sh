@@ -5,7 +5,7 @@ set -e
 #   echo "Usage: $0 <branch_name> <pr_number> <repo_name> <server_user> <server_ip> <server_password>"
 #   exit 1
 # fi
-# Variables
+# Variable
 # BRANCH_NAME=$1
 # PR_NUMBER=$2
 # REPO_NAME=$3
