@@ -27,8 +27,7 @@ export default (app) => {
        // not going to work on windows
        const retriveComment = (status) => {
         return status === "Deployed"
-          ? `
-              <table>
+          ? `<table>
               <tr>
                 <th>Branch Name</th>
                 <th>Deployment Stage</th>
@@ -38,8 +37,8 @@ export default (app) => {
               <tr>
                 <td>${branchName}</td>
                 <td>${status}</td>
-                <td><a href="http://${serverIp}:7000?url=http://${serverIp}:${PORT}">View Logs</a></td>
-                <td><a href="http://${serverIp}:${PORT}">Preview page</a></td>
+                <td><a href="http://${serverIp}:7000?url=http://${serverIp}:${PORT}" target="_blank" rel="noopener noreferrer">View Logs</a></td>
+                <td><a href="http://${serverIp}:${PORT}" target="_blank" rel="noopener noreferrer">Preview page</a></td>
               </tr>
             </table>`
           : `<table>
@@ -52,7 +51,7 @@ export default (app) => {
           <tr>
             <td>${branchName}</td>
             <td>${status}</td>
-            <td><a href="http://${serverIp}:7000?url=http://${serverIp}:${PORT}">View Logs</a></td>
+            <td><a href="http://${serverIp}:7000?url=http://${serverIp}:${PORT}" target="_blank" rel="noopener noreferrer">View Logs</a></td>
             <td></td>
           </tr>
         </table>`;
@@ -68,15 +67,15 @@ export default (app) => {
           } else if (stdout) {
             console.log(`Deploy script output: ${stdout}`);
             body = retriveComment('Deployed')
+          } else if (stderr) {
+            console.error(`Deploy script stderr: ${stderr}`);
+            body = retriveComment('Deployed')
           }
+
 
           if (body) {
             const issueComment = context.issue({ body });
             await context.octokit.issues.createComment(issueComment);
-          }
-
-          if (stderr) {
-            console.error(`Deploy script stderr: ${stderr}`);
           }
         }
       );
@@ -92,18 +91,17 @@ export default (app) => {
     app.log.info(context.payload);
     const prNumber = context.payload.pull_request.number;
     const branchName = context.payload.pull_request.head.ref;
-    // const repoUrl = context.payload.repository.clone_url;
     const repo = context.payload.repository.name;
     const serverUser = process.env.SERVER_USER;
     const serverIp = process.env.SERVER_IP;
     const serverPassword = process.env.SERVER_PASSWORD;
     const __dirname = path.dirname(new URL(import.meta.url).pathname);
     const deployScriptPath = path.resolve(__dirname, "./scripts/cleanUp.sh");
+    const PORT = 8000 + Number(prNumber);
 
     const retriveComment = (status) => {
       return status === "Deployed"
-        ? `
-          <table>
+        ? `<table>
           <tr>
             <th>Branch Name</th>
             <th>Deployment Stage</th>
@@ -113,8 +111,8 @@ export default (app) => {
           <tr>
             <td>${branchName}</td>
             <td>${status}</td>
-            <td><a href="http://${serverIp}:7000?url=http://${serverIp}:8000">View Logs</a></td>
-            <td><a href="http://${serverIp}:7000?url=http://${serverIp}:8000">View Logs</a></td>
+            <td><a href="http://${serverIp}:7000?url=http://${serverIp}:${PORT}" target="_blank" rel="noopener noreferrer">View Logs</a></td>
+            <td><a href="http://${serverIp}:7000?url=http://${serverIp}:${PORT}" target="_blank" rel="noopener noreferrer">View Logs</a></td>
           </tr>
           </table>`
         : `<table>
@@ -127,7 +125,7 @@ export default (app) => {
         <tr>
           <td>${branchName}</td>
           <td>${status}</td>
-          <td><a href="http://${serverIp}:7000?url=http://${serverIp}:8000">View Logs</a></td>
+          <td><a href="http://${serverIp}:7000?url=http://${serverIp}:${PORT}" target="_blank" rel="noopener noreferrer">View Logs</a></td>
           <td></td>
         </tr>
       </table>`;

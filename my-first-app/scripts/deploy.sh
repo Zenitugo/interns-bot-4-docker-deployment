@@ -1,37 +1,5 @@
 #!/bin/bash
 
-# set -e
-
-# BRANCH_NAME=$1
-# PR_NUMBER=$2
-# REPO_NAME=$3
-# REPO_URL=$4
-# APP_DIR="${HOME}/my-first-app-${PR_NUMBER}"
-# DOCKER_COMPOSE_PROJECT_NAME="${REPO_NAME}-${PR_NUMBER}"
-
-# #ssh to be stored here
-# # Navigate to the application directory
-
-# mkdir -p $APP_DIR
-# rm -rf $APP_DIR/*
-# git clone $REPO_URL $APP_DIR
-# cd $APP_DIR
-# # Pull the latest code from the specified branch
-# echo "Pulling latest code from branch ${BRANCH_NAME}..."
-# git fetch origin
-# git checkout $BRANCH_NAME
-# git pull origin $BRANCH_NAME
-
-# # run the Docker Compose
-# echo "Building and running Docker Compose services..."
-# docker-compose -p $DOCKER_COMPOSE_PROJECT_NAME up -d --build
-
-# echo "Deployment for PR #${PR_NUMBER} completed successfully."
-
-
-# #!/bin/bash
-
-
 # Variables
  REPO_URL=$1
  PR_NUMBER=$2
@@ -40,10 +8,11 @@
  SERVER_PASSWORD=$5
  BRANCH_NAME=$6
  LOG_FILE="/app/logs/deployment.log"
- CONTAINER_NAME="pr_${PR_NUMBER}"
- IMAGE_NAME="myapp_pr_${PR_NUMBER}"
- APP_DIR="/root/app_${PR_NUMBER}"
-# PORT=$((8000 + PR_NUMBER))
+ CONTAINER_NAME="${BRANCH_NAME}_pr_${PR_NUMBER}_con"
+ IMAGE_NAME="${BRANCH_NAME}_pr_${PR_NUMBER}_img"
+ APP_DIR="/root/app_${BRANCH_NAME}_${PR_NUMBER}"
+ PORT=$((8000 + PR_NUMBER))
+
 # Function to install Git if not already installed
 install_git() {
   if ! command -v git &> /dev/null; then
@@ -77,10 +46,12 @@ install_docker() {
 
 # Function to log status
 log_status() {
-  echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> /app/logs/deployment.log
+  echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> /root/logs/deployment.log
 }
 
-
+log_status_container() {
+  echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> /app/logs/deployment.log
+}
 # install netstat if not exists
 install_netstat() {
   if ! command -v netstat &> /dev/null; then
@@ -95,24 +66,13 @@ install_netstat() {
 }
 #install_netstat
 
-# Function to find an available port
-find_available_port() {
-  PORT=8000
-  while netstat -tuln | grep -q ":$PORT "; do
-    ((PORT++))
-  done
-  export PORT=$PORT
-}
-
 # SSH into the remote server and run deployment commands using sshpass
-# sshpass -p $SERVER_PASSWORD ssh -o StrictHostKeyChecking=no @$SERVER_IP << EOF
 sshpass -p $SERVER_PASSWORD ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP << EOF
   # Install Git and Docker if not already installed
   $(declare -f install_git)
   $(declare -f install_docker)
   $(declare -f log_status)
   $(declare -f install_netstat)
-  $(declare -f find_available_port)
   install_git
   install_docker
   install_netstat
@@ -163,7 +123,6 @@ sshpass -p $SERVER_PASSWORD ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER
 
 
   # Find an available port
-  PORT=$(find_available_port)
   log_status "Selected available port: $PORT"
   # Start the new Docker container
   if ! docker run -d -p $PORT:5000 --name $CONTAINER_NAME $IMAGE_NAME; then
@@ -187,9 +146,9 @@ EOF
 DEPLOY_STATUS=$?
 # Log the final status
 if [ $DEPLOY_STATUS -eq 0 ]; then
-  log_status "Deployment completed successfully for PR #${PR_NUMBER}"
+  log_status_container "Deployment completed successfully for PR #${PR_NUMBER}"
 else
-  log_status "Error: Deployment failed for PR #${PR_NUMBER}"
+  log_status_container "Error: Deployment failed for PR #${PR_NUMBER}"
 fi
 # Output deployment status
-echo "Deployment status: $DEPLOY_STATUS"
+echo "Deployment status: $DEPLOY_STATUS, PORT: $PORT"
