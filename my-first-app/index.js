@@ -2,6 +2,7 @@
 // See: https://developer.github.com/v3/repos/deployments/ to learn more
 import { exec } from "child_process";
 import path from "path";
+import getAvailablePort from "./get_port.js";
 
 /**
  * This is the main entrypoint to your Probot app
@@ -18,13 +19,13 @@ export default (app) => {
       const serverIp = process.env.SERVER_IP;
       const serverPassword = process.env.SERVER_PASSWORD;
       const branchName = context.payload.pull_request.head.ref;
-      const repoUrl = context.payload.repository.clone_url;
+      //const repoUrl = context.payload.repository.clone_url;
+      const repoUrl = context.payload.pull_request.head.repo.clone_url
       const repo = context.payload.repository.name;
       const __dirname = path.dirname(new URL(import.meta.url).pathname);
       const deployScriptPath = path.resolve(__dirname, "./scripts/deploy.sh");
-      const PORT = 8000 + Number(prNumber);
+      const PORT = await getAvailablePort()
 
-       // not going to work on windows
        const retriveComment = (status) => {
         return status === "Deployed"
           ? `<table>
@@ -58,7 +59,7 @@ export default (app) => {
       };
 
       exec(
-        `bash ${deployScriptPath} ${repoUrl} ${prNumber} ${serverUser} ${serverIp} ${serverPassword} ${branchName} `,
+        `bash ${deployScriptPath} ${repoUrl} ${prNumber} ${serverUser} ${serverIp} ${serverPassword} ${branchName} ${PORT}`,
         async (error, stdout, stderr) => {
           let body;
           if (error) {
@@ -69,7 +70,7 @@ export default (app) => {
             body = retriveComment('Deployed')
           } else if (stderr) {
             console.error(`Deploy script stderr: ${stderr}`);
-            body = retriveComment('Deployed')
+            body = retriveComment('Failed')
           }
 
 
@@ -97,7 +98,7 @@ export default (app) => {
     const serverPassword = process.env.SERVER_PASSWORD;
     const __dirname = path.dirname(new URL(import.meta.url).pathname);
     const deployScriptPath = path.resolve(__dirname, "./scripts/cleanUp.sh");
-    const PORT = 8000 + Number(prNumber);
+    const PORT = await getAvailablePort()
 
     const retriveComment = (status) => {
       return status === "Deployed"
@@ -132,7 +133,7 @@ export default (app) => {
     };
 
     exec(
-      `bash ${deployScriptPath} ${branchName} ${prNumber} ${repo} ${serverUser} ${serverIp} ${serverPassword}`,
+      `bash ${deployScriptPath} ${branchName} ${prNumber} ${repo} ${serverUser} ${serverIp} ${serverPassword} ${PORT}`,
       async (error, stdout, stderr) => {
         let body;
         if (error) {

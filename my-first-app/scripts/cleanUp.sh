@@ -11,7 +11,7 @@ LOG_FILE="/root/logs/deployment.log"
 CONTAINER_NAME="${BRANCH_NAME}_pr_${PR_NUMBER}_con"
 IMAGE_NAME="${BRANCH_NAME}_pr_${PR_NUMBER}_img"
 APP_DIR="/root/app_${BRANCH_NAME}_${PR_NUMBER}"
-PORT=$((8000 + PR_NUMBER))
+PORT=$7
 
 # Function to log status
 log_status() {
