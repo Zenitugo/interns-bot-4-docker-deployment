@@ -10,19 +10,27 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.set('view engine', 'ejs');
 
 app.get('/', async (req, res) => {
-    const { url } = req.query;
+    let { url } = req.query;
     // read from a file line by line
-    // const filePath = '/home/dominic-source/Projects/interns-bot-4-docker-deployment/my-first-app/deployment.log'
-    const filePath = 'cleanup.log'
-    const logs = [];
+    const filePath = '/app/logs/deployment.log'
 
-    const readInterface = readline.createInterface({
-        input: fs.createReadStream(filePath)
-    });
-    for await (const line of readInterface) {
-        logs.push(line);
+    if (!fs.existsSync(filePath)) {
+      fs.writeFileSync(filePath, '', { flag: 'wx' });
     }
-
+    if (! url) {
+	url = 'www.google.com';
+    }
+    const logs = [];
+    try {
+      const readInterface = readline.createInterface({
+        input: fs.createReadStream(filePath)
+      });
+      for await (const line of readInterface) {
+        logs.push(line);
+      }
+   } catch(error) {
+     console.log(error);
+   }
     res.render('index', { logs, url });
 });
 

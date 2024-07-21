@@ -20,7 +20,7 @@ body, html {
     width: 66.66%;
     background-color: #333;
     color: white;
-    padding: 20px;
+    padding: 5px;
     box-sizing: border-box;
     z-index: 1;
 }
@@ -31,7 +31,7 @@ body, html {
     overflow-y: auto;
     background-color: #333;
     color: white;
-    padding: 20px;
+    padding: 50px;
 }
 
 .preview-section {

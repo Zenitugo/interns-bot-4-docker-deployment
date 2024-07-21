@@ -2,8 +2,8 @@
 
 # set -e
 
-# BRANCH_NAME=$1 
-# PR_NUMBER=$2  
+# BRANCH_NAME=$1
+# PR_NUMBER=$2
 # REPO_NAME=$3
 # REPO_URL=$4
 # APP_DIR="${HOME}/my-first-app-${PR_NUMBER}"
@@ -39,11 +39,11 @@
  SERVER_IP=$4
  SERVER_PASSWORD=$5
  BRANCH_NAME=$6
- LOG_FILE="/root/cleanup.log"
+ LOG_FILE="/app/logs/deployment.log"
  CONTAINER_NAME="pr_${PR_NUMBER}"
  IMAGE_NAME="myapp_pr_${PR_NUMBER}"
  APP_DIR="/root/app_${PR_NUMBER}"
-
+# PORT=$((8000 + PR_NUMBER))
 # Function to install Git if not already installed
 install_git() {
   if ! command -v git &> /dev/null; then
@@ -77,7 +77,7 @@ install_docker() {
 
 # Function to log status
 log_status() {
-  echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> deployment.log
+  echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> /app/logs/deployment.log
 }
 
 
@@ -87,24 +87,22 @@ install_netstat() {
     echo "Netstat is not installed. Installing Netstat..."
     sudo apt-get update
     sudo apt-get install -y net-tools
+ #   sudo apt-get install -y sshpass
     echo "Netstat installation completed."
   else
     echo "Netstat is already installed."
   fi
 }
-
+#install_netstat
 
 # Function to find an available port
 find_available_port() {
-  local PORT=8000
+  PORT=8000
   while netstat -tuln | grep -q ":$PORT "; do
     ((PORT++))
   done
   export PORT=$PORT
 }
-find_available_port
-
-
 
 # SSH into the remote server and run deployment commands using sshpass
 # sshpass -p $SERVER_PASSWORD ssh -o StrictHostKeyChecking=no @$SERVER_IP << EOF
@@ -166,22 +164,22 @@ sshpass -p $SERVER_PASSWORD ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER
 
   # Find an available port
   PORT=$(find_available_port)
-  log_status "Selected available port: \$PORT"
+  log_status "Selected available port: $PORT"
   # Start the new Docker container
-  if ! docker run -d -p \$PORT:5000 --name $CONTAINER_NAME $IMAGE_NAME; then
+  if ! docker run -d -p $PORT:5000 --name $CONTAINER_NAME $IMAGE_NAME; then
     log_status "Error: Failed to start container"
     exit 1
   fi
-  log_status "Container started successfully on port \$PORT"
+  log_status "Container started successfully on port $PORT"
 
 
   # Get the deployment URL
-  DEPLOY_URL="http://$SERVER_IP:\$PORT"
-  log_status "Deployment URL: \$DEPLOY_URL"
+  DEPLOY_URL="http://$SERVER_IP:$PORT"
+  log_status "Deployment URL: $DEPLOY_URL"
   # Output deployment details
   echo "Deployment completed successfully"
-  echo "Preview URL: \$DEPLOY_URL"
-  echo "Deployment time: \$(date)"
+  echo "Preview URL: $DEPLOY_URL"
+  echo "Deployment time: $(date)"
 EOF
 
 

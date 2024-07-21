@@ -29,11 +29,11 @@ SERVER_PASSWORD=$6
 APP_DIR="/root/app_${PR_NUMBER}"
 # APP_DIR="$HOME/flask-example"
 CONTAINER_NAME="pr_${PR_NUMBER}"
-LOG_FILE="/root/cleanup.log"
+LOG_FILE="/app/logs/deployment.log"
 IMAGE_NAME="myapp_pr_${PR_NUMBER}"
 # Function to log status
 log_status() {
-  echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> cleanup.log
+  echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> /app/logs/deployment.log
 }
 log_status "Starting cleanup for PR #${PR_NUMBER} on server $SERVER_IP"
 # SSH into the remote server and perform cleanup

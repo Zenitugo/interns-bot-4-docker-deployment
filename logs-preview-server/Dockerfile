@@ -2,7 +2,7 @@
 FROM node:20-slim
 
 # Set the working directory inside the container
-WORKDIR /usr/src/app
+WORKDIR /app
 
 # Copy package.json and package-lock.json (if available) to the working directory
 COPY package*.json ./
@@ -18,5 +18,5 @@ COPY . .
 EXPOSE 7000
 
 # Run the application when the container launches
-# CMD ["npm", "start"]
+#CMD ["npm", "start"]
 CMD ["pm2-runtime", "server.js"]

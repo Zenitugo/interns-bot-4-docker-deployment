@@ -13,7 +13,6 @@ export default (app) => {
   app.on(
     ["pull_request.opened", "pull_request.synchronize", "pull_request.reopened"],
     async (context) => {
-      app.log.info(context.payload);
       const prNumber = context.payload.pull_request.number;
       const serverUser = process.env.SERVER_USER;
       const serverIp = process.env.SERVER_IP;
@@ -23,6 +22,7 @@ export default (app) => {
       const repo = context.payload.repository.name;
       const __dirname = path.dirname(new URL(import.meta.url).pathname);
       const deployScriptPath = path.resolve(__dirname, "./scripts/deploy.sh");
+      const PORT = 8000 + Number(prNumber);
 
        // not going to work on windows
        const retriveComment = (status) => {

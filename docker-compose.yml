@@ -6,20 +6,13 @@ services:
       context: ./my-first-app
       dockerfile: Dockerfile
     container_name: app
-    environment:
-      - APP_ID=${APP_ID}
-      - PRIVATE_KEY=${PRIVATE_KEY}
-      - WEBHOOK_SECRET=${WEBHOOK_SECRET}
-      - LOG_LEVEL=debug
-      - WEBHOOK_PROXY_URL=https://smee.io/PMcjmfua4820wOah
-      - SERVER_USER=${SERVER_USER}
-      - SERVER_IP=${SERVER_IP}
-      - SERVER_PASSWORD=${SERVER_PASSWORD}
     env_file:
-      - .env
+      - ./my-first-app/.env
     ports:
-      - "8000:8000"
-
+      - "3000:3000"
+    volumes:
+      - ./my-first-app/.env:/app/.env
+      - /root/logs:/app/logs
   log_app:
     build:
       context: ./logs-preview-server
@@ -27,3 +20,5 @@ services:
     container_name: logs_preview
     ports:
       - "7000:7000"
+    volumes:
+      - /root/logs:/app/logs
